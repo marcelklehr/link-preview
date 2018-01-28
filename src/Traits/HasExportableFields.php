@@ -1,6 +1,6 @@
 <?php
 
-namespace Dusterio\LinkPreview\Traits;
+namespace Marcelklehr\LinkPreview\Traits;
 
 trait HasExportableFields
 {

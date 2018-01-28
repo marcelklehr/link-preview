@@ -1,12 +1,11 @@
 <?php
 
-namespace Dusterio\LinkPreview\Readers;
+namespace Marcelklehr\LinkPreview\Readers;
 
-use Dusterio\LinkPreview\Contracts\LinkInterface;
-use Dusterio\LinkPreview\Contracts\ReaderInterface;
+use Marcelklehr\LinkPreview\Contracts\LinkInterface;
+use Marcelklehr\LinkPreview\Contracts\ReaderInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
-use GuzzleHttp\TransferStats;
 use GuzzleHttp\Exception\ConnectException;
 
 /**
@@ -93,12 +92,8 @@ class HttpReader implements ReaderInterface
         $client = $this->getClient();
 
         try {
-            $response = $client->request('GET', $link->getUrl(), array_merge($this->config, [
-                'on_stats' => function (TransferStats $stats) use (&$link) {
-                    $link->setEffectiveUrl($stats->getEffectiveUri());
-                }
-            ]));
-
+            $response = $client->get($link->getUrl(), $this->config);
+            $link->setEffectiveUrl($response->getEffectiveUrl());
             $link->setContent($response->getBody())
                 ->setContentType($response->getHeader('Content-Type')[0]);
         } catch (ConnectException $e) {

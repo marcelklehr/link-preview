@@ -1,15 +1,15 @@
 <?php
 
-namespace Dusterio\LinkPreview\Parsers;
+namespace Marcelklehr\LinkPreview\Parsers;
 
-use Dusterio\LinkPreview\Contracts\LinkInterface;
-use Dusterio\LinkPreview\Contracts\PreviewInterface;
-use Dusterio\LinkPreview\Contracts\ReaderInterface;
-use Dusterio\LinkPreview\Contracts\ParserInterface;
-use Dusterio\LinkPreview\Exceptions\ConnectionErrorException;
-use Dusterio\LinkPreview\Models\Link;
-use Dusterio\LinkPreview\Readers\HttpReader;
-use Dusterio\LinkPreview\Models\HtmlPreview;
+use Marcelklehr\LinkPreview\Contracts\LinkInterface;
+use Marcelklehr\LinkPreview\Contracts\PreviewInterface;
+use Marcelklehr\LinkPreview\Contracts\ReaderInterface;
+use Marcelklehr\LinkPreview\Contracts\ParserInterface;
+use Marcelklehr\LinkPreview\Exceptions\ConnectionErrorException;
+use Marcelklehr\LinkPreview\Models\Link;
+use Marcelklehr\LinkPreview\Readers\HttpReader;
+use Marcelklehr\LinkPreview\Models\HtmlPreview;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**

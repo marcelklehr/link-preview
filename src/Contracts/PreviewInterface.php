@@ -1,6 +1,6 @@
 <?php
 
-namespace Dusterio\LinkPreview\Contracts;
+namespace Marcelklehr\LinkPreview\Contracts;
 
 /**
  * Interface PreviewInterface

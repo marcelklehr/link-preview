@@ -1,10 +1,10 @@
 <?php
 
-namespace Dusterio\LinkPreview\Models;
+namespace Marcelklehr\LinkPreview\Models;
 
-use Dusterio\LinkPreview\Contracts\PreviewInterface;
-use Dusterio\LinkPreview\Traits\HasExportableFields;
-use Dusterio\LinkPreview\Traits\HasImportableFields;
+use Marcelklehr\LinkPreview\Contracts\PreviewInterface;
+use Marcelklehr\LinkPreview\Traits\HasExportableFields;
+use Marcelklehr\LinkPreview\Traits\HasImportableFields;
 
 /**
  * Class VideoLink

@@ -1,10 +1,10 @@
 <?php
 
-namespace Dusterio\LinkPreview\Exceptions;
+namespace Marcelklehr\LinkPreview\Exceptions;
 
 /**
  * Class UnknownFieldException
- * @package Dusterio\LinkPreview\Exceptions
+ * @package Marcelklehr\LinkPreview\Exceptions
  * @codeCoverageIgnore
  */
 class UnknownFieldException extends \Exception

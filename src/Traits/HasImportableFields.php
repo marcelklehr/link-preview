@@ -1,8 +1,8 @@
 <?php
 
-namespace Dusterio\LinkPreview\Traits;
+namespace Marcelklehr\LinkPreview\Traits;
 
-use Dusterio\LinkPreview\Exceptions\UnknownFieldException;
+use Marcelklehr\LinkPreview\Exceptions\UnknownFieldException;
 
 trait HasImportableFields
 {
