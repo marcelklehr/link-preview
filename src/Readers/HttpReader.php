@@ -94,8 +94,8 @@ class HttpReader implements ReaderInterface
         try {
             $response = $client->get($link->getUrl(), $this->config);
             $link->setEffectiveUrl($response->getEffectiveUrl());
-            $link->setContent($response->getBody())
-                ->setContentType($response->getHeader('Content-Type')[0]);
+            $link->setContent((string) $response->getBody())
+                ->setContentType($response->getHeaderAsArray('Content-Type')[0]);
         } catch (ConnectException $e) {
             $link->setContent(false)->setContentType(false);
         }
