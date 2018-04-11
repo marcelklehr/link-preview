@@ -185,6 +185,6 @@ class HtmlParser extends BaseParser implements ParserInterface
 
         if (!isset($cover) && count($images)) $cover = $images[0];
 
-        return compact('cover', 'title', 'description', 'images', 'video', 'videoType');
+        return compact('cover', 'title', 'favicon', 'description', 'images', 'video', 'videoType');
     }
 }
