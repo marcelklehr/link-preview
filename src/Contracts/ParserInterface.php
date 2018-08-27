@@ -1,62 +1,30 @@
 <?php
 
 namespace Marcelklehr\LinkPreview\Contracts;
-use Marcelklehr\LinkPreview\Models\Preview;
 
 /**
  * Interface ParserInterface
  * @codeCoverageIgnore
  */
-interface ParserInterface
-{
-    /**
-     * Set default reader and model
-     * @param ReaderInterface $reader
-     * @param PreviewInterface $preview
-     */
-    public function __construct(ReaderInterface $reader = null, PreviewInterface $preview);
+interface ParserInterface {
 
-    /**
-     * Parsers name
-     * @return string
-     */
-    public function __toString();
+	/**
+	 * Parsers name
+	 * @return string
+	 */
+	public function __toString();
 
-    /**
-     * Get reader
-     * @return ReaderInterface
-     */
-    public function getReader();
+	/**
+	 * Can this parser parse the link supplied?
+	 * @param LinkInterface $link
+	 * @return boolean
+	 */
+	public function canParseLink(LinkInterface $link);
 
-    /**
-     * Set reader
-     * @param ReaderInterface $reader
-     * @return $this
-     */
-    public function setReader(ReaderInterface $reader);
-
-    /**
-     * @return PreviewInterface
-     */
-    public function getPreview();
-
-    /**
-     * @param PreviewInterface $preview
-     * @return $this
-     */
-    public function setPreview(PreviewInterface $preview);
-
-    /**
-     * Can this parser parse the link supplied?
-     * @param LinkInterface $link
-     * @return boolean
-     */
-    public function canParseLink(LinkInterface $link);
-
-    /**
-     * Parse link
-     * @param LinkInterface $link
-     * @return $this
-     */
-    public function parseLink(LinkInterface $link);
+	/**
+	 * Parse link
+	 * @param PreviewInterface $link
+	 * @return $this
+	 */
+	public function parseLink(PreviewInterface $link);
 }

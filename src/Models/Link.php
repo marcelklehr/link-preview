@@ -2,139 +2,94 @@
 
 namespace Marcelklehr\LinkPreview\Models;
 
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Client\ClientInterface;
 use Marcelklehr\LinkPreview\Contracts\LinkInterface;
 use Marcelklehr\LinkPreview\Exceptions\MalformedUrlException;
+use Marcelklehr\LinkPreview\Exceptions\ConnectionErrorException;
 
 /**
  * Class Link
  */
-class Link implements LinkInterface
-{
-    /**
-     * @var string $content Website content
-     */
-    private $content;
+class Link implements LinkInterface {
+	/**
+	 * @var string $url
+	 */
+	private $url;
 
-    /**
-     * @var string $contentType Website content type
-     */
-    private $contentType;
+	/**
+	 * @var array $parsers
+	 */
+	private $parsers;
 
-    /**
-     * @var string $url
-     */
-    private $url;
+	/**
+	 * @var ClientInterface $client
+	 */
+	private $client;
 
-    /**
-     * @var string $effectiveUrl In case of redirects, this contains the final path
-     */
-    private $effectiveUrl;
+	/**
+	 * @var RequestFactoryInterface  $requestFactory
+	 */
+	private $requestFactory;
 
-    /**
-     * @param string $url
-     * @throws MalformedUrlException
-     */
-    public function __construct($url)
-    {
-        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
-            throw new MalformedUrlException();
-        }
+	/**
+	 * @param string $url
+	 * @throws MalformedUrlException
+	 */
+	public function __construct($url, array $parsers, ClientInterface $client, RequestFactoryInterface $requestFactory) {
+		if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+			throw new MalformedUrlException();
+		}
 
-        $this->setUrl($url);
-    }
+		$this->client = $client;
+		$this->parser = $parsers;
+		$this->requestFactory = $requestFactory;
+		$this->setUrl($url);
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function getContent()
-    {
-        return $this->content;
-    }
+	protected function fetch() {
+		$url = $this->getUrl();
+		do {
+			if (isset($res)) {
+				if ($res->getStatus() === 301 || $res->getStatus() === 302) {
+					$url = $res->getHeader('Location');
+				} else {
+					throw new ConnectionErrorException("Server returned error: ".$res->getStatus());
+				}
+			}
+			$res = $this->client->sendRequest($this->requestFactory->createRequest('GET', $url));
+		} while ($res->getStatus() !== 200);
+		return $res;
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function setContent($content)
-    {
-        $this->content = (string)$content;
+	/**
+	 * @inheritdoc
+	 */
+	public function getPreview() {
+		$res = $this->fetch();
+		$preview = new Preview($this->getUrl());
+		foreach ($this->parsers as $parserName => $parser) {
+			if ($parser->canParseLink($this)) {
+				continue;
+			}
+			$parser->parseLink($res, $preview);
+		}
+		return $preview;
+	}
 
-        return $this;
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function getUrl() {
+		return $this->url;
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function getContentType()
-    {
-        return $this->contentType;
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function setUrl($url) {
+		$this->url = $url;
 
-    /**
-     * @inheritdoc
-     */
-    public function setContentType($contentType)
-    {
-        $this->contentType = $contentType;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getUrl()
-    {
-        return $this->url;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setUrl($url)
-    {
-        $this->url = $url;
-
-        return $this;
-    }
-    /**
-     * @inheritdoc
-     */
-    public function getEffectiveUrl()
-    {
-        return $this->effectiveUrl;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setEffectiveUrl($effectiveUrl)
-    {
-        $this->effectiveUrl = $effectiveUrl;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isHtml()
-    {
-        return !strncmp($this->getContentType(), 'text/', strlen('text/'));
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isImage()
-    {
-        return !strncmp($this->getContentType(), 'image/', strlen('image/'));
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isUp()
-    {
-        return $this->content !== false && $this->contentType !== false;
-    }
+		return $this;
+	}
 }

@@ -2,6 +2,8 @@
 
 namespace Marcelklehr\LinkPreview;
 
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Client\ClientInterface;
 use Marcelklehr\LinkPreview\Contracts\ParserInterface;
 use Marcelklehr\LinkPreview\Contracts\PreviewInterface;
 use Marcelklehr\LinkPreview\Parsers\HtmlParser;
@@ -10,145 +12,98 @@ use Marcelklehr\LinkPreview\Parsers\VimeoParser;
 use Marcelklehr\LinkPreview\Models\Link;
 use Marcelklehr\LinkPreview\Exceptions\UnknownParserException;
 
-class Client
-{
-    /**
-     * @var ParserInterface[]
-     */
-    private $parsers = [];
+class Client {
+	/**
+	 * @var ParserInterface[]
+	 */
+	private $parsers = [];
 
-    /**
-     * @var Link $link
-     */
-    private $link;
+	/**
+	 * @var ClientInterface $client
+	 */
+	private $client;
 
-    /**
-     * @param string $url Request address
-     */
-    public function __construct($url = null)
-    {
-        if ($url) $this->setUrl($url);
-        $this->addDefaultParsers();
-    }
+	/**
+	 * @var RequestFactoryInterface $requestFactory
+	 */
+	private $requestFactory;
 
-    /**
-     * Try to get previews from as many parsers as possible
-     * @return PreviewInterface[]
-     */
-    public function getPreviews()
-    {
-        $parsed = [];
+	/**
+	 * @param string $url Request address
+	 */
+	public function __construct(ClientInterface $client, RequestFactoryInterface $requestFactory) {
+		$this->client = $client;
+		$this->requestFactory = $requestFactory;
+		$this->addDefaultParsers();
+	}
 
-        foreach ($this->getParsers() as $name => $parser) {
-            if ($parser->canParseLink($this->link))
-                $parsed[$name] = $parser->parseLink($this->link)->getPreview();
-        }
+	/**
+	 * Add parser to the beginning of parsers list
+	 *
+	 * @param ParserInterface $parser
+	 * @return $this
+	 */
+	public function addParser(ParserInterface $parser) {
+		$this->parsers = [(string) $parser => $parser] + $this->parsers;
 
-        return $parsed;
-    }
+		return $this;
+	}
 
-    /**
-     * Get a preview from a single parser
-     * @param string $parserId
-     * @throws UnknownParserException
-     * @return PreviewInterface|boolean
-     */
-    public function getPreview($parserId)
-    {
-        if (array_key_exists($parserId, $this->getParsers())) {
-            $parser = $this->getParsers()[$parserId];
-        } else throw new UnknownParserException();
+	/**
+	 * @param $id
+	 * @return bool|ParserInterface
+	 */
+	public function getParser($id) {
+		return isset($this->parsers[$id]) ? $this->parsers[$id] : false;
+	}
 
-        return $parser->parseLink($this->link)->getPreview();
-    }
+	/**
+	 * Get parsers
+	 * @return ParserInterface[]
+	 */
+	public function getParsers() {
+		return $this->parsers;
+	}
 
-    /**
-     * Add parser to the beginning of parsers list
-     *
-     * @param ParserInterface $parser
-     * @return $this
-     */
-    public function addParser(ParserInterface $parser)
-    {
-        $this->parsers = [(string) $parser => $parser] + $this->parsers;
+	/**
+	 * Set parsers
+	 * @param ParserInterface[] $parsers
+	 * @return $this
+	 */
+	public function setParsers($parsers) {
+		$this->parsers = $parsers;
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param $id
-     * @return bool|ParserInterface
-     */
-    public function getParser($id)
-    {
-        return isset($this->parsers[$id]) ? $this->parsers[$id] : false;
-    }
+	/**
+	 * @return Link
+	 */
+	public function getLink($url) {
+		return new Link($url, $this->parsers, $this->client, $this->requestFactory);
+	}
 
-    /**
-     * Get parsers
-     * @return ParserInterface[]
-     */
-    public function getParsers()
-    {
-        return $this->parsers;
-    }
+	/**
+	 * Remove parser from parsers list
+	 *
+	 * @param string $name Parser name
+	 * @return $this
+	 */
+	public function removeParser($name) {
+		if (in_array($name, $this->parsers, false)) {
+			unset($this->parsers[$name]);
+		}
 
-    /**
-     * Set parsers
-     * @param ParserInterface[] $parsers
-     * @return $this
-     */
-    public function setParsers($parsers)
-    {
-        $this->parsers = $parsers;
+		return $this;
+	}
 
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl()
-    {
-        return (!empty($this->link->getEffectiveUrl())) ? $this->link->getEffectiveUrl() : $this->link->getUrl();
-    }
-
-    /**
-     * Set target url
-     *
-     * @param string $url Website url to parse
-     * @return $this
-     */
-    public function setUrl($url)
-    {
-        $this->link = new Link($url);
-
-        return $this;
-    }
-
-    /**
-     * Remove parser from parsers list
-     *
-     * @param string $name Parser name
-     * @return $this
-     */
-    public function removeParser($name)
-    {
-        if (in_array($name, $this->parsers, false)) {
-            unset($this->parsers[$name]);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Add default parsers
-     * @return void
-     */
-    protected function addDefaultParsers()
-    {
-        $this->addParser(new HtmlParser());
-        $this->addParser(new YouTubeParser());
-        $this->addParser(new VimeoParser());
-    }
+	/**
+	 * Add default parsers
+	 * @return void
+	 */
+	protected function addDefaultParsers() {
+		$this->addParser(new HtmlParser());
+		$this->addParser(new YouTubeParser());
+		$this->addParser(new VimeoParser());
+	}
 }

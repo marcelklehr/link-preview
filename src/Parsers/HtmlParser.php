@@ -2,189 +2,181 @@
 
 namespace Marcelklehr\LinkPreview\Parsers;
 
-use Marcelklehr\LinkPreview\Contracts\LinkInterface;
 use Marcelklehr\LinkPreview\Contracts\PreviewInterface;
-use Marcelklehr\LinkPreview\Contracts\ReaderInterface;
 use Marcelklehr\LinkPreview\Contracts\ParserInterface;
-use Marcelklehr\LinkPreview\Exceptions\ConnectionErrorException;
-use Marcelklehr\LinkPreview\Models\Link;
-use Marcelklehr\LinkPreview\Readers\HttpReader;
-use Marcelklehr\LinkPreview\Models\HtmlPreview;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Class HtmlParser
  */
-class HtmlParser extends BaseParser implements ParserInterface
-{
-    /**
-     * Supported HTML tags
-     *
-     * @var array
-     */
-    private $tags = [
-        'cover' => [
-            ['selector' => 'meta[property="twitter:image"]', 'attribute' => 'content'],
-            ['selector' => 'meta[property="og:image"]', 'attribute' => 'content'],
-            ['selector' => 'meta[itemprop="image"]', 'attribute' => 'content'],
-        ],
+class HtmlParser implements ParserInterface {
+	/**
+	 * Supported HTML tags
+	 *
+	 * @var array
+	 */
+	private $tags = [
+	'basic' => [
+		'title' => [
+			['selector' => 'meta[property="twitter:title"]', 'attribute' => 'content'],
+			['selector' => 'meta[property="og:title"]', 'attribute' => 'content'],
+			['selector' => 'meta[itemprop="name"]', 'attribute' => 'content'],
+			['selector' => 'title']
+		],
 
-        'title' => [
-            ['selector' => 'meta[property="twitter:title"]', 'attribute' => 'content'],
-            ['selector' => 'meta[property="og:title"]', 'attribute' => 'content'],
-            ['selector' => 'meta[itemprop="name"]', 'attribute' => 'content'],
-            ['selector' => 'title']
-        ],
-	    
-        'favicon' => [
-          ['selector' => 'link[rel="shortcut icon"]', 'attribute' => 'href'],
-          ['selector' => 'link[rel="icon"]', 'attribute' => 'href']
-        ],
+		'description' => [
+			['selector' => 'meta[property="twitter:description"]', 'attribute' => 'content'],
+			['selector' => 'meta[property="og:description"]', 'attribute' => 'content'],
+			['selector' => 'meta[itemprop="description"]', 'attribute' => 'content'],
+			['selector' => 'meta[name="description"]', 'attribute' => 'content'],
+		]
+	],
+	'image' => [
+		'small' => [
+			['selector' => 'meta[property="twitter:image"]', 'attribute' => 'content'],
+			['selector' => 'meta[property="og:image"]', 'attribute' => 'content'],
+			['selector' => 'meta[itemprop="image"]', 'attribute' => 'content'],
+		],
 
-        'description' => [
-            ['selector' => 'meta[property="twitter:description"]', 'attribute' => 'content'],
-            ['selector' => 'meta[property="og:description"]', 'attribute' => 'content'],
-            ['selector' => 'meta[itemprop="description"]', 'attribute' => 'content'],
-            ['selector' => 'meta[name="description"]', 'attribute' => 'content'],
-        ],
+		'favicon' => [
+		  ['selector' => 'link[rel="shortcut icon"]', 'attribute' => 'href'],
+		  ['selector' => 'link[rel="icon"]', 'attribute' => 'href']
+		]
+	],
+	'video' => [
+		'url' => [
+			['selector' => 'meta[property="twitter:player:stream"]', 'attribute' => 'content'],
+			['selector' => 'meta[property="og:video"]', 'attribute' => 'content'],
+		],
 
-        'video' => [
-            ['selector' => 'meta[property="twitter:player:stream"]', 'attribute' => 'content'],
-            ['selector' => 'meta[property="og:video"]', 'attribute' => 'content'],
-        ],
+		'type' => [
+			['selector' => 'meta[property="twitter:player:stream:content_type"]', 'attribute' => 'content'],
+			['selector' => 'meta[property="og:video:type"]', 'attribute' => 'content'],
+		]
+	]
+	];
 
-        'videoType' => [
-            ['selector' => 'meta[property="twitter:player:stream:content_type"]', 'attribute' => 'content'],
-            ['selector' => 'meta[property="og:video:type"]', 'attribute' => 'content'],
-        ],
-    ];
+	/**
+	 * Smaller images will be ignored
+	 * @var int
+	 */
+	private $smallImageMinimumSize = 200;
+	private $largeImageMinimumSize = 650;
 
-    /**
-     * Smaller images will be ignored
-     * @var int
-     */
-    private $imageMinimumWidth = 300;
-    private $imageMinimumHeight = 300;
-
-    /**
-     * @param ReaderInterface $reader
-     * @param PreviewInterface $preview
-     */
-    public function __construct(ReaderInterface $reader = null, PreviewInterface $preview = null)
-    {
-        $this->setReader($reader ?: new HttpReader());
-        $this->setPreview($preview ?: new HtmlPreview());
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function __toString()
-    {
-        return 'general';
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function __toString() {
+		return 'general';
+	}
 
 
-    /**
-     * @param int $width
-     * @param int $height
-     */
-    public function setMinimumImageDimension($width, $height)
-    {
-        $this->imageMinimumWidth = $width;
-        $this->imageMinimumHeight = $height;
-    }
+	/**
+	 * @param int $width
+	 * @param int $height
+	 */
+	public function setMinimumImageDimensions($small, $large) {
+		$this->smallImageMinimumSize = $small;
+		$this->largeImageMinimumSize = $large;
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function canParseLink(LinkInterface $link)
-    {
-        return !filter_var($link->getUrl(), FILTER_VALIDATE_URL) === false;
-    }
+	/**
+	 * @inheritdoc
+	 */
+	public function canParseLink(LinkInterface $link) {
+		return !filter_var($link->getUrl(), FILTER_VALIDATE_URL) === false;
+	}
 
-    /**
-     * @inheritdoc
-     */
-    public function parseLink(LinkInterface $link)
-    {
-        $link = $this->readLink($link);
+	/**
+	 * @inheritdoc
+	 */
+	public function parseLink($res, PreviewInterface $preview) {
+		$mime = $res->getHeader('Content-Type');
+		if ($this->isHtml($mime)) {
+			$this->parseHtml($res, $preview);
+		} elseif ($this->isImage($mime)) {
+			$this->parseImage($res, $preview);
+		}
 
-        if (!$link->isUp()) throw new ConnectionErrorException();
+		return $this;
+	}
 
-        if ($link->isHtml()) {
-            $this->getPreview()->update($this->parseHtml($link));
-        } else if ($link->isImage()) {
-            $this->getPreview()->update($this->parseImage($link));
-        }
+	protected function isHtml($mime) {
+		return !strncmp($mime, 'text/', strlen('text/'));
+	}
 
-        return $this;
-    }
+	protected function isImage($mime) {
+		return !strncmp($mime, 'image/', strlen('image/'));
+	}
 
-    /**
-     * @param LinkInterface $link
-     * @return array
-     */
-    protected function parseImage(LinkInterface $link)
-    {
-        return [
-            'cover' => $link->getEffectiveUrl(),
-            'images' => [
-                $link->getEffectiveUrl()
-            ]
-        ];
-    }
+	/**
+	 * @param PreviewInterface $link
+	 * @return array
+	 */
+	protected function parseImage($res, PreviewInterface $preview) {
+		$preview->update('image', [
+			'large' => $preview->getUrl(),
+			'small' =>
+				$preview->getUrl()
+		]);
+	}
 
-    /**
-     * Extract required data from html source
-     * @param LinkInterface $link
-     * @return array
-     */
-    protected function parseHtml(LinkInterface $link)
-    {
-        $images = [];
+	/**
+	 * Extract required data from html source
+	 * @param PreviewInterface $link
+	 * @return array
+	 */
+	protected function parseHtml($res, PreviewInterface $preview) {
+		$images = [];
 
-        try {
-            $parser = new Crawler();
-	    $parser->addHtmlContent($link->getContent());
+		try {
+			$parser = new Crawler();
+			$parser->addHtmlContent($res->getBody()->getContents());
 
-            // Parse all known tags
-            foreach($this->tags as $tag => $selectors) {
-                foreach($selectors as $selector) {
-                    if ($parser->filter($selector['selector'])->count() > 0) {
-                        if (isset($selector['attribute'])) {
-                            ${$tag} = $parser->filter($selector['selector'])->first()->attr($selector['attribute']);
-                        } else {
-                            ${$tag} = $parser->filter($selector['selector'])->first()->text();
-                        }
+			// Parse all known tags
+			foreach ($this->tags as $scope => $tags) {
+				$data = [];
+				foreach ($tags as $tag => $selectors) {
+					foreach ($selectors as $selector) {
+						if ($parser->filter($selector['selector'])->count() > 0) {
+							if (isset($selector['attribute'])) {
+								$data[$tag] = $parser->filter($selector['selector'])->first()->attr($selector['attribute']);
+							} else {
+								$data[$tag] = $parser->filter($selector['selector'])->first()->text();
+							}
+							break;
+						}
+					}
+				}
+				$preview->update($scope, $data);
+			}
 
-                        break;
-                    }
-                }
+			// Parse all images on this page
+			foreach ($parser->filter('img') as $image) {
+				if (!$image->hasAttribute('src')) {
+					continue;
+				}
+				if (filter_var($image->getAttribute('src'), FILTER_VALIDATE_URL) === false) {
+					continue;
+				}
 
-                // Default is empty string
-                if (!isset(${$tag})) ${$tag} = '';
-            }
+				// This is not bulletproof, actual image maybe bigger than tags
+				if (
+		  $image->hasAttribute('width') && $image->getAttribute('width') >= $this->smallImageMinimumSize ||
+		  $image->hasAttribute('height') && $image->getAttribute('height') >= $this->smallImageMinimumSize
+		) {
+					$preview->update('image', ['small' => $image->getAttribute('src')]);
+				}
 
-            // Parse all images on this page
-            foreach($parser->filter('img') as $image) {
-                if (!$image->hasAttribute('src')) continue;
-                if (filter_var($image->getAttribute('src'), FILTER_VALIDATE_URL) === false) continue;
-
-                // This is not bulletproof, actual image maybe bigger than tags
-                if ($image->hasAttribute('width') && $image->getAttribute('width') < $this->imageMinimumWidth) continue;
-                if ($image->hasAttribute('height') && $image->getAttribute('height') < $this->imageMinimumHeight) continue;
-
-                $images[] = $image->getAttribute('src');
-            }
-        } catch (\InvalidArgumentException $e) {
-            // Ignore exceptions
-        }
-
-        $images = array_unique($images);
-
-        if (!isset($cover) && count($images)) $cover = $images[0];
-
-        return compact('cover', 'title', 'favicon', 'description', 'images', 'video', 'videoType');
-    }
+				if (
+		  $image->hasAttribute('width') && $image->getAttribute('width') >= $this->largeImageMinimumSize ||
+		  $image->hasAttribute('height') && $image->getAttribute('height') >= $this->largeImageMinimumSize
+		) {
+					$preview->update('image', ['small' => $image->getAttribute('src')]);
+				}
+			}
+		} catch (\InvalidArgumentException $e) {
+			// Ignore exceptions
+		}
+	}
 }
