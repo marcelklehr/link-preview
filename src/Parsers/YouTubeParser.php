@@ -2,6 +2,7 @@
 
 namespace Marcelklehr\LinkPreview\Parsers;
 
+use Marcelklehr\LinkPreview\Contracts\LinkInterface;
 use Marcelklehr\LinkPreview\Contracts\ParserInterface;
 use Marcelklehr\LinkPreview\Contracts\PreviewInterface;
 
