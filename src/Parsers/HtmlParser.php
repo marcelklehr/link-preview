@@ -85,14 +85,14 @@ class HtmlParser implements ParserInterface {
 	 * @inheritdoc
 	 */
 	public function canParseLink(LinkInterface $link) {
-		return !filter_var($link->getUrl(), FILTER_VALIDATE_URL) === false;
+		return filter_var($link->getUrl(), FILTER_VALIDATE_URL) !== false;
 	}
 
 	/**
 	 * @inheritdoc
 	 */
 	public function parseLink($res, PreviewInterface $preview) {
-		$mime = $res->getHeader('Content-Type');
+		$mime = $res->getHeader('Content-Type')[0];
 		if ($this->isHtml($mime)) {
 			$this->parseHtml($res, $preview);
 		} elseif ($this->isImage($mime)) {
