@@ -36,9 +36,11 @@ class YouTubeParser implements ParserInterface {
 	public function parseLink($res, PreviewInterface $preview) {
 		preg_match(static::PATTERN, $preview->getUrl(), $matches);
 
-		$preview->update('video', [
-		  'id'=> $matches[1],
-		  'embed' => '<iframe id="ytplayer" type="text/html" width="640" height="390" src="//www.youtube.com/embed/'.$matches[1].'" frameborder="0"></iframe>'
-	  ]);
+		if (isset(matches[1])) {
+			$preview->update('video', [
+			  'id'=> $matches[1],
+			  'embed' => '<iframe id="ytplayer" type="text/html" width="640" height="390" src="//www.youtube.com/embed/'.$matches[1].'" frameborder="0"></iframe>'
+		  ]);
+		}
 	}
 }

@@ -35,9 +35,11 @@ class VimeoParser implements ParserInterface {
 	public function parseLink($res, PreviewInterface $preview) {
 		preg_match(static::PATTERN, $preview->getUrl(), $matches);
 
-		$preview->update('video', [
-		  'id'=> $matches[1],
-		  'embed' => '<iframe id="viplayer" width="640" height="390" src="//player.vimeo.com/video/'.$matches[1].'"" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>'
-	  ]);
+		if (isset($matches[1])) {
+			$preview->update('video', [
+			  'id'=> $matches[1],
+			  'embed' => '<iframe id="viplayer" width="640" height="390" src="//player.vimeo.com/video/'.$matches[1].'"" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>'
+		  ]);
+		}
 	}
 }
