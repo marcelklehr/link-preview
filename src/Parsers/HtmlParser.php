@@ -173,7 +173,7 @@ class HtmlParser implements ParserInterface {
 		  $image->hasAttribute('width') && $image->getAttribute('width') >= $this->largeImageMinimumSize ||
 		  $image->hasAttribute('height') && $image->getAttribute('height') >= $this->largeImageMinimumSize
 		) {
-					$preview->update('image', ['small' => $image->getAttribute('src')]);
+					$preview->update('image', ['large' => $image->getAttribute('src')]);
 				}
 			}
 		} catch (\InvalidArgumentException $e) {
