@@ -2,6 +2,9 @@
 
 namespace Marcelklehr\LinkPreview\Contracts;
 
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Client\ClientInterface;
+
 /**
  * Interface LinkInterface
  * @codeCoverageIgnore
