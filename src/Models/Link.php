@@ -69,7 +69,7 @@ class Link implements LinkInterface {
 		$res = $this->fetch();
 		$preview = new Preview($this->getUrl());
 		foreach ($this->parsers as $parserName => $parser) {
-			if ($parser->canParseLink($this)) {
+			if (!$parser->canParseLink($this)) {
 				continue;
 			}
 			$parser->parseLink($res, $preview);
