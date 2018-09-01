@@ -42,7 +42,7 @@ class Link implements LinkInterface {
 		}
 
 		$this->client = $client;
-		$this->parser = $parsers;
+		$this->parsers = $parsers;
 		$this->requestFactory = $requestFactory;
 		$this->setUrl($url);
 	}
