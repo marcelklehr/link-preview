@@ -4,6 +4,7 @@ namespace Marcelklehr\LinkPreview\Parsers;
 
 use Marcelklehr\LinkPreview\Contracts\PreviewInterface;
 use Marcelklehr\LinkPreview\Contracts\ParserInterface;
+use Marcelklehr\LinkPreview\Contracts\LinkInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
