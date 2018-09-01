@@ -11,7 +11,7 @@ interface LinkInterface {
 	 * LinkInterface constructor.
 	 * @param string $url
 	 */
-	public function __construct($url);
+	public function __construct($url, array $parsers, ClientInterface $client, RequestFactoryInterface $requestFactory);
 
 	/**
 	 * Get website url
