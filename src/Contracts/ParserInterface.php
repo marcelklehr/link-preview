@@ -26,5 +26,5 @@ interface ParserInterface {
 	 * @param PreviewInterface $link
 	 * @return $this
 	 */
-	public function parseLink(PreviewInterface $link);
+	public function parseLink($response, PreviewInterface $link);
 }
