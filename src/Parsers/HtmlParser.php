@@ -135,15 +135,15 @@ class HtmlParser implements ParserInterface {
 			$parser->addHtmlContent($res->getBody()->getContents());
 
 			// Parse all known tags
-			foreach ($this->tags as $scope => $tags) {
+			foreach ($this->tags as $scope => $items) {
 				$data = [];
-				foreach ($tags as $tag => $selectors) {
+				foreach ($items as $item => $selectors) {
 					foreach ($selectors as $selector) {
 						if ($parser->filter($selector['selector'])->count() > 0) {
 							if (isset($selector['attribute'])) {
-								$data[$tag] = $parser->filter($selector['selector'])->first()->attr($selector['attribute']);
+								$data[$item] = $parser->filter($selector['selector'])->first()->attr($selector['attribute']);
 							} else {
-								$data[$tag] = $parser->filter($selector['selector'])->first()->text();
+								$data[$item] = $parser->filter($selector['selector'])->first()->text();
 							}
 							break;
 						}
