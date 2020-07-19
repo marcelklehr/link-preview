@@ -52,7 +52,7 @@ class Link implements LinkInterface {
 		do {
 			if (isset($res)) {
 				if ($res->getStatusCode() === 301 || $res->getStatusCode() === 302) {
-					$url = $res->getHeader('Location');
+					$url = $res->getHeader('Location')[0];
 				} else {
 					throw new ConnectionErrorException("Server returned error: ".$res->getStatusCode());
 				}
