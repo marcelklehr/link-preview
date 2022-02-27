@@ -51,7 +51,7 @@ class Link implements LinkInterface {
 		$url = $this->getUrl();
 		do {
 			if (isset($res)) {
-				if ($res->getStatusCode() === 301 || $res->getStatusCode() === 302) {
+				if (($res->getStatusCode() === 301 || $res->getStatusCode() === 302) && $res->hasHeader('Location')) {
 					$url = $res->getHeader('Location')[0];
 				} else {
 					throw new ConnectionErrorException("Server returned error: ".$res->getStatusCode());
