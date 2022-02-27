@@ -47,7 +47,10 @@ class Link implements LinkInterface {
 		$this->setUrl($url);
 	}
 
-	protected function fetch() {
+    /**
+     * @throws \Marcelklehr\LinkPreview\Exceptions\ConnectionErrorException
+     */
+    protected function fetch() {
 		$url = $this->getUrl();
 		do {
 			if (isset($res)) {
@@ -62,9 +65,10 @@ class Link implements LinkInterface {
 		return $res;
 	}
 
-	/**
-	 * @inheritdoc
-	 */
+    /**
+     * @inheritdoc
+     * @throws \Marcelklehr\LinkPreview\Exceptions\ConnectionErrorException
+     */
 	public function getPreview() {
 		$res = $this->fetch();
 		$preview = new Preview($this->getUrl());

@@ -31,6 +31,7 @@ interface LinkInterface {
 
 	/**
 	 * Get the preview of the link
+     * @throws \Marcelklehr\LinkPreview\Exceptions\ConnectionErrorException
 	 * @return PreviewInterface
 	 */
 	public function getPreview();
