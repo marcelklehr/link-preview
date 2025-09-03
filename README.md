@@ -16,7 +16,7 @@ This fork is special in that it doesn't come with any specific HTTP implementati
 To install simply run:
 
 ```
-composer require dusterio/link-preview
+composer require marcelklehr/link-preview
 ```
 
 Or add it to `composer.json` manually:
